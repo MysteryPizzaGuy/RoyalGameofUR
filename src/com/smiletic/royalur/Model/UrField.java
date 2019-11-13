@@ -11,6 +11,8 @@ import jdk.nashorn.internal.parser.Token;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -44,7 +46,11 @@ public final class UrField extends Pane implements Serializable {
         this.x = x;
         this.y = y;
         UrFieldImage.setImage(urFieldImage);
-        this.setOnDragDetected(event -> {
+        SetListeners();
+        
+    }
+    private void SetListeners(){
+    this.setOnDragDetected(event -> {
             Dragboard db = this.startDragAndDrop(TransferMode.MOVE);
             ClipboardContent content = new ClipboardContent();
             content.putImage(TokenImage.getImage());
@@ -108,18 +114,27 @@ public final class UrField extends Pane implements Serializable {
         aOutputStream.writeInt(x);
         aOutputStream.writeInt(y);
         if (TokenImage.getImage() !=null){
-            aOutputStream.writeInt(1);
+            ByteArrayOutputStream b = new ByteArrayOutputStream();
             BufferedImage image= SwingFXUtils.fromFXImage(TokenImage.getImage(),null);
-            ImageIO.write(image, "png", aOutputStream);
+            ImageIO.write(image, "png", b);
+            aOutputStream.writeInt(b.size());
+            b.writeTo(aOutputStream);
 
         }else{
             aOutputStream.writeInt(0);
 
         }
+        if(UrFieldImage.getImage()!=null){
+            ByteArrayOutputStream b = new ByteArrayOutputStream();
+            BufferedImage image= SwingFXUtils.fromFXImage(UrFieldImage.getImage(),null);
+            ImageIO.write(image, "png", b);
+            aOutputStream.writeInt(b.size());
+            b.writeTo(aOutputStream);
+        }else{
+            aOutputStream.writeInt(0);
 
-        BufferedImage image2= SwingFXUtils.fromFXImage(UrFieldImage.getImage(),null);
+        }
 
-        ImageIO.write(image2, "png", aOutputStream);
 
     }
     private void readObject(ObjectInputStream aInputStream) throws ClassNotFoundException, IOException
@@ -133,16 +148,27 @@ public final class UrField extends Pane implements Serializable {
         this.getChildren().add(UrFieldImage);
         this.getChildren().add(TokenImage);
 
-        int temp = aInputStream.readInt();
-        if(temp==1){
-            BufferedImage bf = ImageIO.read(aInputStream);
-            TokenImage.setImage(SwingFXUtils.toFXImage(bf,null));
-
+        int length = aInputStream.readInt();
+        if(length>0){
+            byte[] bytes = new byte[length];
+            aInputStream.readFully(bytes);
+            BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
+            TokenImage.setImage(SwingFXUtils.toFXImage(image,null));
+        
         }
-        BufferedImage bf2 = ImageIO.read(aInputStream);
+        length = aInputStream.readInt();
 
-        UrFieldImage.setImage(SwingFXUtils.toFXImage(bf2,null));
+        if(length>0){
+            byte[] bytes = new byte[length];
+            aInputStream.readFully(bytes);
+            BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
+            UrFieldImage.setImage(SwingFXUtils.toFXImage(image,null));
+        
+        }
+        SetListeners();
 
+
+        
     }
 
 }

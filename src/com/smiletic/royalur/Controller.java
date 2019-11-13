@@ -151,6 +151,9 @@ public class Controller {
                 in.close();
                 fileIn.close();
             }
+            for (UrField field:fields) {
+                gameGrid.add(field,field.getX(),field.getY());
+            }
         }catch (FileNotFoundException ex){
             fields = CreateField();
             for (UrField field:fields) {
