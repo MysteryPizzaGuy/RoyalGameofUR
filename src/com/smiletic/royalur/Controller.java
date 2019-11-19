@@ -22,7 +22,14 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 
 import java.io.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
+
+import static j2html.TagCreator.*;
 
 public class Controller {
     @FXML
@@ -46,6 +53,53 @@ public class Controller {
     private Button btnSave;
     @FXML
     private Button btnRoll;
+
+    @FXML
+    private Button btnGenerateDoc;
+
+    @FXML
+    private void HandlebtnHenerateDocAction(ActionEvent event){
+        List<Class<?>> listOfClasses = getClassesInPackage("com.smiletic.royalur.Model");
+        for (Class<?> currentClass: listOfClasses
+             ) {
+            List<Field> classfields = Arrays.asList(currentClass.getDeclaredFields());
+            List<Method> classMethods = Arrays.asList(currentClass.getDeclaredMethods());
+            List<Parameter> methodParameters = new ArrayList<>();
+
+           try(FileWriter writer = new FileWriter(currentClass.getName()+".html")){
+               html(
+                       head(
+                               title(currentClass.getName())
+                       ),
+                       body(
+                               h1(currentClass.getName()),
+                               h2("FIELDS"),
+                               each(classfields,field ->
+                                       div(attrs(".field"),
+                                               b(field.getType()+ " "),
+                                               i(field.getName())
+                                               )
+                                       ),
+                                h2("METHODS"),
+                               each(classMethods,method ->
+                                       div(attrs(".methods"),
+                                               b(method.getReturnType().getName() +" "),
+                                               text(method.getName()+" "),
+                                               each(Arrays.asList(method.getParameters()),parameter ->
+                                                       i(parameter.toString())
+                                                       )
+
+                                               )
+                                       )
+                       )
+
+               ).render(writer);
+           } catch (IOException e) {
+               e.printStackTrace();
+           }
+
+        }
+    }
 
     @FXML
     private void HandlebtnRollAction(ActionEvent event){
@@ -203,6 +257,52 @@ public class Controller {
         rtnList.add(new UrField(imageDict.get("dotgrids"),2,8));
 
         return rtnList;
+    }
+
+    public static final List<Class<?>> getClassesInPackage(String packageName) {
+        String path = packageName.replace(".", File.separator);
+        List<Class<?>> classes = new ArrayList<>();
+        String[] classPathEntries = System.getProperty("java.class.path").split(
+                System.getProperty("path.separator")
+        );
+
+        String name;
+        for (String classpathEntry : classPathEntries) {
+            if (classpathEntry.endsWith(".jar")) {
+                File jar = new File(classpathEntry);
+                try {
+                    JarInputStream is = new JarInputStream(new FileInputStream(jar));
+                    JarEntry entry;
+                    while((entry = is.getNextJarEntry()) != null) {
+                        name = entry.getName();
+                        if (name.endsWith(".class")) {
+                            if (name.contains(path) && name.endsWith(".class")) {
+                                String classPath = name.substring(0, entry.getName().length() - 6);
+                                classPath = classPath.replaceAll("[\\|/]", ".");
+                                classes.add(Class.forName(classPath));
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                    // Silence is gold
+                }
+            } else {
+                try {
+                    File base = new File(classpathEntry + File.separatorChar + path);
+                    for (File file : base.listFiles()) {
+                        name = file.getName();
+                        if (name.endsWith(".class")) {
+                            name = name.substring(0, name.length() - 6);
+                            classes.add(Class.forName(packageName + "." + name));
+                        }
+                    }
+                } catch (Exception ex) {
+                    // Silence is gold
+                }
+            }
+        }
+
+        return classes;
     }
 
 //    private Pane getToken() {

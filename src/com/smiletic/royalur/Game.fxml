@@ -64,6 +64,7 @@
                             </font>
                         </Label>
                   <Button fx:id="btnSave" mnemonicParsing="false" onAction="#HandlebtnSaveAction" text="SAVE" GridPane.columnIndex="2" />
+                  <Button fx:id="btnGenerateDoc" mnemonicParsing="false" onAction="#HandlebtnHenerateDocAction" text="DOC" GridPane.columnIndex="3" />
                     </children>
                 </GridPane>
             </children>
