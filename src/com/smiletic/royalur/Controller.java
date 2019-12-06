@@ -2,6 +2,8 @@ package com.smiletic.royalur;
 
 import com.smiletic.royalur.Model.UrField;
 import com.smiletic.royalur.Model.UrToken;
+import com.smiletic.royalur.Model.User;
+import com.smiletic.royalur.RMI.Client;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -9,6 +11,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
@@ -18,6 +21,9 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
@@ -25,6 +31,10 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -48,6 +58,14 @@ public class Controller {
 
     List<Label> LabelList = new ArrayList<>();
 
+    @FXML
+    Button btnConnectToChat;
+
+    @FXML
+    TextFlow txtflwChatOutput;
+
+    @FXML
+    TextField txtfldInput;
 
     @FXML
     private Button btnSave;
@@ -56,6 +74,16 @@ public class Controller {
 
     @FXML
     private Button btnGenerateDoc;
+
+    @FXML
+    private void HandleBtnConnectToServer(ActionEvent event){
+        try {
+            client= new Client(user,this);
+            client.startClient();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
 
     @FXML
     private void HandlebtnHenerateDocAction(ActionEvent event){
@@ -133,21 +161,16 @@ public class Controller {
 
     private static final int BLUETEAMINT = 1;
     private static final int REDTEAMINT = 2;
+    private static Client client;
+    private static User user;
 
     Map<String,Image> imageDict = new Hashtable<>();
     Stage mainstage;
     List<UrField> fields;
 
-
     @FXML
     public void initialize() {
 
-//        imageDict.put("dots",new Image("/res/dots.png",));
-//        imageDict.put("eyes",new Image("/res/eyes.png"));
-//        imageDict.put("rosette",new Image("/res/rosette.png"));
-//        imageDict.put("waves",new Image("/res/waves.png"));
-//        imageDict.put("dotwaves",new Image("/res/dotwaves.png"));
-//        imageDict.put("dotgrids",new Image("/res/dotgrids.png"));
         imageDict.put("dots",new Image(getClass().getResource("res/dots.png").toString(), true));
 
         imageDict.put("eyes",new Image(getClass().getResource("res/eyes.png").toString(), true));
@@ -158,41 +181,7 @@ public class Controller {
         imageDict.put("bluecounter",new Image(getClass().getResource("res/blue-counter.png").toString(), true));
         imageDict.put("redcounter",new Image(getClass().getResource("res/red-counter.png").toString(), true));
         LabelList.addAll(Arrays.asList(lblRollResult,lblRollResult2,lblRollResult3,lblRollResult4));
-
-//        Stack<Pane> dotsStack = new Stack<>();
-//        Stack<Pane> eyesStack = new Stack<>();
-//        Stack<Pane> rosetteStack = new Stack<>();
-//        Stack<Pane> wavesStack = new Stack<>();
-//        Stack<Pane> dotwavesStack = new Stack<>();
-//        Stack<Pane> dotgridsStack = new Stack<>();
-//        fillStack(dotsStack,5,"dots");
-//        fillStack(dotwavesStack,2,"dotwaves");
-//        fillStack(eyesStack,5,"eyes");
-//        fillStack(rosetteStack,5,"rosette");
-//        fillStack(wavesStack,2,"waves");
-//        fillStack(dotgridsStack,1,"dotgrids");
-
-        
-//        gameGrid.add(wavesStack.pop(),1,1);
-//        gameGrid.add(wavesStack.pop(),3,1);
-//        gameGrid.add(dotsStack.pop(),2,1);
-//        gameGrid.add(dotsStack.pop(),2,4);
-//        gameGrid.add(dotsStack.pop(),1,6);
-//        gameGrid.add(dotsStack.pop(),3,6);
-//        gameGrid.add(dotsStack.pop(),2,7);
-//        gameGrid.add(eyesStack.pop(),2,2);
-//        gameGrid.add(eyesStack.pop(),1,5);
-//        gameGrid.add(eyesStack.pop(),3,5);
-//        gameGrid.add(eyesStack.pop(),3,7);
-//        gameGrid.add(eyesStack.pop(),1,7);
-//        gameGrid.add(rosetteStack.pop(),1,2);
-//        gameGrid.add(rosetteStack.pop(),3,2);
-//        gameGrid.add(rosetteStack.pop(),2,5);
-//        gameGrid.add(rosetteStack.pop(),1,8);
-//        gameGrid.add(rosetteStack.pop(),3,8);
-//        gameGrid.add(dotwavesStack.pop(),2,3);
-//        gameGrid.add(dotwavesStack.pop(),2,6);
-//        gameGrid.add(dotgridsStack.pop(),2,8);
+        user = new User();
 
 
 
@@ -230,9 +219,18 @@ public class Controller {
 
 
 
-
     }
 
+    @FXML
+    private void HandletxtInputSubmitMessage(ActionEvent events) throws RemoteException {
+        if(client !=null){
+            client.server.broadcastMessage(user,txtfldInput.getText());
+        }else{
+            AppendToConsole("Establish a connection first",new User("SERVER", Color.RED));
+        }
+        txtfldInput.clear();
+
+    }
     private List<UrField> CreateField(){
         List<UrField> rtnList = new ArrayList<>();
         rtnList.add(new UrField(imageDict.get("waves"),1,1));
@@ -304,91 +302,15 @@ public class Controller {
 
         return classes;
     }
+    public void AppendToConsole(String text, User user) {
+        Text t1 = new Text();
+        t1.setFill(user.getUsercolor());
+        t1.setText(user.getUserName()+": "+ text + '\n');
 
-//    private Pane getToken() {
-//
-//        ImageView temp = new ImageView();
-//
-//        temp.setImage(imageDict.get("bluecounter"));
-//        temp.setFitWidth(WIDTH);
-//        temp.setFitHeight(WIDTH);
-//        temp.setPreserveRatio(true);
-//        temp.setSmooth(true);
-//        temp.setCache(true);
-//        Pane ptemp = new Pane();
-//        ptemp.setOnDragDetected(event -> {
-//            Dragboard db = ptemp.startDragAndDrop(TransferMode.MOVE);
-//            ClipboardContent content = new ClipboardContent();
-//            content.putImage(temp.getImage());
-//            db.setContent(content);
-//            event.consume();
-//        });
-//
-//
-//
-//        ptemp.getChildren().add(temp);
-//        return ptemp;
-//    }
 
-//    private void fillStack(Stack<Pane> xStack, int i,String x) {
-//        for (int j = 0; j < i ; j++) {
-//            ImageView temp = new ImageView();
-//            ImageView temp2 = new ImageView();
-//            temp.setImage(imageDict.get(x));
-//            temp.setFitWidth(WIDTH);
-//            temp.setFitHeight(WIDTH);
-//            temp.setPreserveRatio(true);
-//            temp.setSmooth(true);
-//            temp.setCache(true);
-//            temp2.setFitWidth(WIDTH);
-//            temp2.setFitHeight(WIDTH);
-//            temp2.setPreserveRatio(true);
-//            temp2.setSmooth(true);
-//            temp2.setCache(true);
-//            Pane ptemp = new Pane();
-//            ptemp.setOnDragDetected(event -> {
-//                Dragboard db = ptemp.startDragAndDrop(TransferMode.MOVE);
-//                ClipboardContent content = new ClipboardContent();
-//                content.putImage(temp2.getImage());
-//                db.setContent(content);
-//                event.consume();
-//            });
-//            ptemp.setOnDragOver(event -> {
-//                if (event.getGestureSource() != ptemp &&
-//                        event.getDragboard().hasImage()) {
-//                    event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
-//                }
-//                event.consume();
-//
-//            });
-//            ptemp.setOnDragDropped(event -> {
-//                Dragboard db = event.getDragboard();
-//
-//                if (db.hasImage()) {
-//                    temp2.setImage(db.getImage());
-//
-//                    if(event.getGestureTarget()!=null){
-//                        event.setDropCompleted(true);
-//                    }else{
-//                        event.setDropCompleted(false);
-//                    }
-//
-//                }
-//                event.consume();
-//            });
-//            ptemp.setOnDragDone(event -> {
-//                if (ptemp==event.getGestureSource() && !event.isDropCompleted()){
-//                    temp2.setImage(null);
-//
-//                }
-//                event.consume();
-//            });
-//
-//            ptemp.getChildren().add(temp);
-//            ptemp.getChildren().add(temp2);
-//            xStack.add(ptemp);
-//        }
-//    }
+
+        txtflwChatOutput.getChildren().add(t1);
+    }
 
 
 }

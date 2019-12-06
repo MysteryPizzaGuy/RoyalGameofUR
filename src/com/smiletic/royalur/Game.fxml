@@ -2,21 +2,26 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.text.TextFlow?>
 
-<GridPane alignment="center" hgap="10" prefHeight="645.0" prefWidth="389.0" vgap="10" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.smiletic.royalur.Controller">
+<GridPane alignment="center" hgap="10" prefHeight="645.0" prefWidth="640.0" style="-fx-background-color: grey;" vgap="10" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.smiletic.royalur.Controller">
     <columnConstraints>
         <ColumnConstraints />
+      <ColumnConstraints maxWidth="350.0" minWidth="250.0" prefWidth="100.0" />
     </columnConstraints>
     <rowConstraints>
         <RowConstraints />
+      <RowConstraints maxHeight="569.0" minHeight="10.0" prefHeight="527.0" />
+      <RowConstraints maxHeight="577.0" minHeight="10.0" prefHeight="85.0" />
     </rowConstraints>
     <children>
-        <Pane prefHeight="632.0" prefWidth="374.0" style="-fx-background-color: cornflowerblue; -fx-border-color: darkorange; -fx-border-width: 10;">
+        <Pane prefHeight="632.0" prefWidth="374.0" style="-fx-background-color: cornflowerblue; -fx-border-color: darkorange; -fx-border-width: 10;" GridPane.rowSpan="2147483647">
             <children>
                 <GridPane fx:id="gameGrid" hgap="5.0" layoutX="52.0" layoutY="16.0" vgap="5.0">
 
@@ -65,9 +70,16 @@
                         </Label>
                   <Button fx:id="btnSave" mnemonicParsing="false" onAction="#HandlebtnSaveAction" text="SAVE" GridPane.columnIndex="2" />
                   <Button fx:id="btnGenerateDoc" mnemonicParsing="false" onAction="#HandlebtnHenerateDocAction" text="DOC" GridPane.columnIndex="3" />
+                  <Button fx:id="btnConnectToChat" mnemonicParsing="false" onAction="#HandleBtnConnectToServer" text="CONNECT" GridPane.columnIndex="1" />
                     </children>
                 </GridPane>
             </children>
         </Pane>
+      <Pane minWidth="117.0" prefHeight="527.0" prefWidth="191.0" style="-fx-background-color: white;" GridPane.columnIndex="1" GridPane.hgrow="NEVER" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+         <children>
+            <TextFlow fx:id="txtflwChatOutput" prefWidth="250.0" style="-fx-background-color: white;" />
+         </children>
+      </Pane>
+      <TextField fx:id="txtfldInput" alignment="TOP_LEFT" onAction="#HandletxtInputSubmitMessage" prefHeight="99.0" prefWidth="256.0" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS" />
     </children>
 </GridPane>
