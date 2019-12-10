@@ -33,10 +33,11 @@ public final class UrField extends Pane implements Serializable {
 
     ImageView UrFieldImage;
     ImageView TokenImage;
+    UrToken urToken;
 
     public UrField(Image urFieldImage, int x, int y ) {
         super();
-
+        urToken=null;
         UrFieldImage=new ImageView();
         ImageViewSetup(UrFieldImage);
         TokenImage =new ImageView();
@@ -53,13 +54,15 @@ public final class UrField extends Pane implements Serializable {
     this.setOnDragDetected(event -> {
             Dragboard db = this.startDragAndDrop(TransferMode.MOVE);
             ClipboardContent content = new ClipboardContent();
-            content.putImage(TokenImage.getImage());
+            content.put(UrToken.urTokenFormat,urToken);
+//            content.putImage(TokenImage.getImage());
             db.setContent(content);
             event.consume();
         });
         this.setOnDragOver(event -> {
             if (event.getGestureSource() != this &&
-                    event.getDragboard().hasImage()) {
+//                    event.getDragboard().hasImage()) {
+                        event.getDragboard().hasContent(UrToken.urTokenFormat)) {
                 event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
             }
             event.consume();
@@ -68,9 +71,16 @@ public final class UrField extends Pane implements Serializable {
         this.setOnDragDropped(event -> {
             Dragboard db = event.getDragboard();
 
-            if (db.hasImage()) {
-                TokenImage.setImage(db.getImage());
+//            if (db.hasImage()) {
+            if (db.hasContent(UrToken.urTokenFormat)) {
 
+//                TokenImage.setImage(db.getImage());
+                Object content=  db.getContent(UrToken.urTokenFormat);
+                urToken = (UrToken) content;
+                urToken.setX(x);
+                urToken.setY(y);
+                System.out.println("X:"+urToken.getX()+"Y:"+urToken.getY());
+                TokenImage.setImage(urToken.TokenImage.getImage());
                 if(event.getGestureTarget()!=null){
                     event.setDropCompleted(true);
                 }else{
@@ -83,6 +93,7 @@ public final class UrField extends Pane implements Serializable {
         this.setOnDragDone(event -> {
             if (this==event.getGestureSource() && !event.isDropCompleted()){
                 TokenImage.setImage(null);
+                urToken=null;
 
             }
             event.consume();
@@ -94,12 +105,12 @@ public final class UrField extends Pane implements Serializable {
 
 
 
-    private void SetFieldImage(Image img){
-        if (UrFieldImage != null){
-            UrFieldImage.setImage(img);
-        }
-
-    }
+//    private void SetFieldImage(Image img){
+//        if (UrFieldImage != null){
+//            UrFieldImage.setImage(img);
+//        }
+//
+//    }
 
     private void ImageViewSetup(ImageView iv){
         iv.setFitHeight(WIDTH);
@@ -113,17 +124,22 @@ public final class UrField extends Pane implements Serializable {
     {
         aOutputStream.writeInt(x);
         aOutputStream.writeInt(y);
-        if (TokenImage.getImage() !=null){
-            ByteArrayOutputStream b = new ByteArrayOutputStream();
-            BufferedImage image= SwingFXUtils.fromFXImage(TokenImage.getImage(),null);
-            ImageIO.write(image, "png", b);
-            aOutputStream.writeInt(b.size());
-            b.writeTo(aOutputStream);
-
+        if (urToken !=null){
+            aOutputStream.writeObject(urToken);
         }else{
-            aOutputStream.writeInt(0);
-
+            aOutputStream.writeObject(null);
         }
+//        if (TokenImage.getImage() !=null){
+//            ByteArrayOutputStream b = new ByteArrayOutputStream();
+//            BufferedImage image= SwingFXUtils.fromFXImage(TokenImage.getImage(),null);
+//            ImageIO.write(image, "png", b);
+//            aOutputStream.writeInt(b.size());
+//            b.writeTo(aOutputStream);
+//
+//        }else{
+//            aOutputStream.writeInt(0);
+//
+//        }
         if(UrFieldImage.getImage()!=null){
             ByteArrayOutputStream b = new ByteArrayOutputStream();
             BufferedImage image= SwingFXUtils.fromFXImage(UrFieldImage.getImage(),null);
@@ -142,21 +158,28 @@ public final class UrField extends Pane implements Serializable {
         x = aInputStream.readInt();
         y = aInputStream.readInt();
         UrFieldImage=new ImageView();
+        TokenImage=new ImageView();
+
         ImageViewSetup(UrFieldImage);
-        TokenImage =new ImageView();
+
+        urToken = (UrToken) aInputStream.readObject();
+        if(urToken!=null){
+            TokenImage=urToken.TokenImage;
+        }
         ImageViewSetup(TokenImage);
+
         this.getChildren().add(UrFieldImage);
         this.getChildren().add(TokenImage);
 
+//        int length = aInputStream.readInt();
+//        if(length>0){
+//            byte[] bytes = new byte[length];
+//            aInputStream.readFully(bytes);
+//            BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
+//            TokenImage.setImage(SwingFXUtils.toFXImage(image,null));
+//
+//        }
         int length = aInputStream.readInt();
-        if(length>0){
-            byte[] bytes = new byte[length];
-            aInputStream.readFully(bytes);
-            BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
-            TokenImage.setImage(SwingFXUtils.toFXImage(image,null));
-        
-        }
-        length = aInputStream.readInt();
 
         if(length>0){
             byte[] bytes = new byte[length];
