@@ -1,5 +1,6 @@
 package com.smiletic.royalur.Model;
 
+import com.smiletic.royalur.SOCKET.UrSocketClient;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -17,12 +18,14 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public final class UrField extends Pane implements Serializable {
+public final class UrField extends Pane implements Serializable,Component {
     int x;
     int y;
     private static final long serialVersionUID= 7829136421241571165L;
-
     public int getX() {
         return x;
     }
@@ -34,6 +37,7 @@ public final class UrField extends Pane implements Serializable {
     ImageView UrFieldImage;
     ImageView TokenImage;
     UrToken urToken;
+    static public UrSocketClient socketClient = null;
 
     public UrField(Image urFieldImage, int x, int y ) {
         super();
@@ -48,8 +52,34 @@ public final class UrField extends Pane implements Serializable {
         this.y = y;
         UrFieldImage.setImage(urFieldImage);
         SetListeners();
-        
+
+
     }
+
+    public void setUrToken(UrToken urToken) {
+        if(urToken!=null){
+            UrToken newToken = new UrToken(urToken.getX(),urToken.getY(),urToken.TokenImage.getImage(),urToken.getTeam());
+            this.urToken = newToken;
+            this.urToken.TokenImage.setImage(newToken.TokenImage.getImage());
+            this.TokenImage.setImage(newToken.TokenImage.getImage());
+//            ImageViewSetup(this.TokenImage);
+
+            urToken.setX(this.getX());
+            urToken.setY(this.getY());
+        }
+    }
+    public void RemoveUrToken(){
+        TokenImage.setImage(null);
+
+        UrToken token = urToken;
+        this.urToken=null;
+
+    }
+
+    public UrToken getUrToken() {
+        return urToken;
+    }
+
     private void SetListeners(){
     this.setOnDragDetected(event -> {
             Dragboard db = this.startDragAndDrop(TransferMode.MOVE);
@@ -79,6 +109,24 @@ public final class UrField extends Pane implements Serializable {
                 urToken = (UrToken) content;
                 urToken.setX(x);
                 urToken.setY(y);
+                Object object =  event.getGestureSource();
+
+                Component source =null;
+                if(UrField.class.isInstance(object)){
+                    source= (UrField) object;
+                }else{
+                    source= (UrToken) object;
+                }
+
+
+                if(socketClient!=null ){
+                    if(event.getGestureSource() instanceof UrField){
+                        socketClient.Moved(urToken.getX(),urToken.getY(),source.getX(),source.getY(),urToken.getTeam());
+                    }else{
+                        socketClient.Created(urToken.getX(),urToken.getY(),source.getX(),source.getY(),urToken.getTeam());
+
+                    };
+                }
                 System.out.println("X:"+urToken.getX()+"Y:"+urToken.getY());
                 TokenImage.setImage(urToken.TokenImage.getImage());
                 if(event.getGestureTarget()!=null){
@@ -165,6 +213,8 @@ public final class UrField extends Pane implements Serializable {
         urToken = (UrToken) aInputStream.readObject();
         if(urToken!=null){
             TokenImage=urToken.TokenImage;
+            urToken.setX(this.getX());
+            urToken.setY(this.getY());
         }
         ImageViewSetup(TokenImage);
 

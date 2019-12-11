@@ -13,7 +13,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 
-public class UrToken extends Pane implements Serializable {
+public class UrToken extends Pane implements Serializable,Component {
     private int x;
     private int y;
     private static final long serialVersionUID= 1829336425241573335L;
@@ -33,7 +33,7 @@ public class UrToken extends Pane implements Serializable {
     private static final int WIDTH = 50;
     ImageView TokenImage;
     private int team;
-    static DataFormat urTokenFormat= new DataFormat("com.smiletic.royalur.Model.UrToken");
+    public static DataFormat urTokenFormat= new DataFormat("com.smiletic.royalur.Model.UrToken");
 
     public void setX(int x) {
         this.x = x;
@@ -42,6 +42,8 @@ public class UrToken extends Pane implements Serializable {
     public void setY(int y) {
         this.y = y;
     }
+
+
 
     public UrToken() {
         super();
@@ -62,6 +64,7 @@ public class UrToken extends Pane implements Serializable {
             content.put(urTokenFormat,this);
             db.setContent(content);
             event.consume();
+
         });
         this.getChildren().add(TokenImage);
         team=teamint;

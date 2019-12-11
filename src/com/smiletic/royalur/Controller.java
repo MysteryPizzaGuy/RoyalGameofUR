@@ -4,8 +4,11 @@ import com.smiletic.royalur.Model.UrField;
 import com.smiletic.royalur.Model.UrToken;
 import com.smiletic.royalur.Model.User;
 import com.smiletic.royalur.RMI.Client;
+import com.smiletic.royalur.SOCKET.UrSocketClient;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventTarget;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -14,10 +17,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -33,13 +33,20 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
+import java.rmi.NoSuchObjectException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
 import static j2html.TagCreator.*;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 
 public class Controller {
     @FXML
@@ -75,6 +82,32 @@ public class Controller {
     @FXML
     private Button btnGenerateDoc;
 
+    UrSocketClient socketClient= null;
+    ExecutorService pool;
+
+    public void Shutdown(){
+        if(socketClient!=null){
+            socketClient.Shutdown();
+        }
+        pool.shutdown();
+
+        try{
+            pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Child threads Killed");
+        if(client!=null){
+            try {
+                UnicastRemoteObject.unexportObject(client,true);
+            } catch (NoSuchObjectException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
     @FXML
     private void HandleBtnConnectToServer(ActionEvent event){
         try {
@@ -83,7 +116,20 @@ public class Controller {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
+        try {
+            socketClient = new UrSocketClient("localhost",this);
+            socketClient =socketClient;
+            pool= Executors.newFixedThreadPool(5);
+            pool.execute(socketClient);
+            UrField.socketClient=socketClient;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
+
+
 
     @FXML
     private void HandlebtnHenerateDocAction(ActionEvent event){
@@ -158,11 +204,13 @@ public class Controller {
 
 
     private static final int WIDTH = 50;
-
+    private static final boolean MULTIPLAYER =true;
     private static final int BLUETEAMINT = 1;
     private static final int REDTEAMINT = 2;
     private static Client client;
     private static User user;
+    UrToken BlueTokenSpawn;
+    UrToken RedTokenSpawn;
 
     Map<String,Image> imageDict = new Hashtable<>();
     Stage mainstage;
@@ -182,7 +230,6 @@ public class Controller {
         imageDict.put("redcounter",new Image(getClass().getResource("res/red-counter.png").toString(), true));
         LabelList.addAll(Arrays.asList(lblRollResult,lblRollResult2,lblRollResult3,lblRollResult4));
         user = new User();
-
 
 
         try {
@@ -208,9 +255,8 @@ public class Controller {
             e.printStackTrace();
         }
 
-
-        UrToken BlueTokenSpawn = new UrToken(0,0,imageDict.get("bluecounter"),BLUETEAMINT);
-        UrToken RedTokenSpawn = new UrToken(4,0,imageDict.get("redcounter"),REDTEAMINT);
+        BlueTokenSpawn = new UrToken(0,0,imageDict.get("bluecounter"),BLUETEAMINT);
+        RedTokenSpawn = new UrToken(4,0,imageDict.get("redcounter"),REDTEAMINT);
         gameGrid.add(BlueTokenSpawn,BlueTokenSpawn.getX(),BlueTokenSpawn.getY());
         gameGrid.add(RedTokenSpawn,RedTokenSpawn.getX(),RedTokenSpawn.getY());
 
@@ -219,6 +265,45 @@ public class Controller {
 
 
 
+    }
+    public void MoveToken(int fromx, int fromy, int tox, int toy){
+        Optional<UrField> fieldoptional = fields.stream().filter(urField -> fromx==urField.getX() && urField.getY()==fromy).findAny();
+        if(fieldoptional.isPresent()){
+            UrField field = fieldoptional.get();
+            UrToken token = field.getUrToken();
+            if (token!=null){
+                Optional<UrField> targetfieldoptional = fields.stream().parallel().filter(urField -> tox==urField.getX() && urField.getY()==toy).findAny();
+                if(targetfieldoptional.isPresent()){
+                    UrField targetfield = targetfieldoptional.get();
+                    targetfield.setUrToken(token);
+                    field.RemoveUrToken();
+                    AppendToConsole("Moving on this window",new User("System",Color.RED));
+
+                }
+
+            }
+
+
+
+        }
+    }
+    public void CreateToken(int tox, int toy,int team){
+         Optional<UrField> targetfieldoptional = fields.stream().parallel().filter(urField -> tox==urField.getX() && urField.getY()==toy).findAny();
+         if(targetfieldoptional.isPresent()){
+             UrField targetfield = targetfieldoptional.get();
+             UrToken token=null;
+             if(team ==BLUETEAMINT){
+                 token=BlueTokenSpawn;
+             }else{
+                 token=RedTokenSpawn;
+             }
+             targetfield.setUrToken(token);
+             AppendToConsole("Moving on this window",new User("System",Color.RED));
+
+
+
+
+        }
     }
 
     @FXML

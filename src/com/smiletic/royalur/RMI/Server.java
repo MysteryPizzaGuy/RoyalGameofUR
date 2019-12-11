@@ -63,7 +63,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         try {
             client = (ClientInterface) Naming.lookup("rmi://" + hostName+"/"+clientServiceName);
             clients.add(new ClientData(user,client));
-            client.messageFromServer("Server: You've joined" + user.getUserName() + " welcome!", new User("SERVER", Color.RED));
+            client.messageFromServer("You've joined" + user.getUserName() + " welcome!", new User("SERVER", Color.RED));
 
         } catch (NotBoundException e) {
             e.printStackTrace();
