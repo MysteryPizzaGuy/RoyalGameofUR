@@ -1,6 +1,7 @@
 package com.smiletic.royalur;
 
 import com.smiletic.royalur.Model.UrField;
+import com.smiletic.royalur.Model.UrFinishCounter;
 import com.smiletic.royalur.Model.UrToken;
 import com.smiletic.royalur.Model.User;
 import com.smiletic.royalur.RMI.Client;
@@ -130,6 +131,7 @@ public class Controller {
             pool= Executors.newFixedThreadPool(5);
             pool.execute(socketClient);
             UrField.socketClient=socketClient;
+            UrFinishCounter.socketClient=socketClient;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -263,6 +265,7 @@ public class Controller {
     Map<String,Image> imageDict = new Hashtable<>();
     Stage mainstage;
     List<UrField> fields;
+    List<UrFinishCounter> results;
 
 
     @FXML
@@ -282,8 +285,11 @@ public class Controller {
         BlueTokenSpawn = new UrToken(0,0,imageDict.get("bluecounter"),BLUETEAMINT);
         RedTokenSpawn = new UrToken(4,0,imageDict.get("redcounter"),REDTEAMINT);
 
+        
+        
         try {
             fields=new ArrayList<>();
+            results = new ArrayList<>();
             for (int i =0;i<20;i++){
                 FileInputStream fileIn = new FileInputStream("savedata.ser");
                 ObjectInputStream in = new ObjectInputStream(fileIn);
@@ -292,8 +298,19 @@ public class Controller {
                 in.close();
                 fileIn.close();
             }
+            for (int i =0;i<2;i++){
+                FileInputStream fileIn = new FileInputStream("savedatarez.ser");
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                results= (ArrayList<UrFinishCounter>)in.readObject();
+//                fields.add((UrField)in.readObject());
+                in.close();
+                fileIn.close();
+            }
             for (UrField field:fields) {
                 gameGrid.add(field,field.getX(),field.getY());
+            }
+            for (UrFinishCounter rez: results){
+                gameGrid.add(rez,rez.getX(),rez.getY());
             }
             UrField temp= fields.stream().filter(x-> x.getUrToken()!=null).findFirst().get();
 
@@ -309,6 +326,13 @@ public class Controller {
             for (UrField field:fields) {
                 gameGrid.add(field,field.getX(),field.getY());
             }
+            UrFinishCounter bluecounter = new UrFinishCounter(1, 4, 0);
+            UrFinishCounter redcounter = new UrFinishCounter(3, 4, 0);
+
+            gameGrid.add(bluecounter,bluecounter.getX(),bluecounter.getY());
+            gameGrid.add(redcounter,redcounter.getX(),redcounter.getY());
+            
+            
             MakeTeamActive(BLUETEAMINT);
         }catch (IOException i){
             i.printStackTrace();
@@ -319,7 +343,6 @@ public class Controller {
 
         gameGrid.add(BlueTokenSpawn,BlueTokenSpawn.getX(),BlueTokenSpawn.getY());
         gameGrid.add(RedTokenSpawn,RedTokenSpawn.getX(),RedTokenSpawn.getY());
-
 
 
 

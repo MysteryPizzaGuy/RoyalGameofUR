@@ -98,4 +98,12 @@ public class UrSocketClient implements Runnable {
             e.printStackTrace();
         }
     }
+
+//    public void CounterUP(int x, int y,int team) {
+//        try {
+//            out.writeObject(new DataCarrier(-1,-1,x,y,,CREATE));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 }
