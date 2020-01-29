@@ -42,8 +42,15 @@ public class UrToken extends Pane implements Serializable,Component {
     public void setY(int y) {
         this.y = y;
     }
+    boolean currentlyActive =true;
 
+    public boolean isCurrentlyActive() {
+        return currentlyActive;
+    }
 
+    public void setCurrentlyActive(boolean currentlyActive) {
+        this.currentlyActive = currentlyActive;
+    }
 
     public UrToken() {
         super();
@@ -56,14 +63,16 @@ public class UrToken extends Pane implements Serializable,Component {
         TokenImage = new ImageView();
         TokenImage.setImage(tokenImage);
         ImageViewSetup(TokenImage);
-
         this.setOnDragDetected(event -> {
-            Dragboard db = this.startDragAndDrop(TransferMode.MOVE);
-            ClipboardContent content = new ClipboardContent();
+            if (isCurrentlyActive()) {
+                
+                Dragboard db = this.startDragAndDrop(TransferMode.MOVE);
+                ClipboardContent content = new ClipboardContent();
 //            content.putImage(TokenImage.getImage());
-            content.put(urTokenFormat,this);
-            db.setContent(content);
-            event.consume();
+                content.put(urTokenFormat,this);
+                db.setContent(content);
+                event.consume();
+            }
 
         });
         this.getChildren().add(TokenImage);
@@ -81,6 +90,7 @@ public class UrToken extends Pane implements Serializable,Component {
     {
         aOutputStream.writeInt(x);
         aOutputStream.writeInt(y);
+        aOutputStream.writeBoolean(currentlyActive);
         aOutputStream.writeInt(team);
         if(TokenImage.getImage()!=null){
             ByteArrayOutputStream b = new ByteArrayOutputStream();
@@ -100,6 +110,7 @@ public class UrToken extends Pane implements Serializable,Component {
 
             x = aInputStream.readInt();
             y = aInputStream.readInt();
+            currentlyActive=aInputStream.readBoolean();
             team = aInputStream.readInt();
             int length = aInputStream.readInt();
             TokenImage=new ImageView();

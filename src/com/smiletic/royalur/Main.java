@@ -10,13 +10,16 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        FXMLLoader loader =new FXMLLoader(getClass().getResource("Game.fxml"));
+//        FXMLLoader loader =new FXMLLoader(getClass().getResource("Game.fxml"));
+//        Parent root = loader.load();
+//        primaryStage.setScene(new Scene(root));
+//        Controller controller = loader.getController();
+//        primaryStage.setOnHidden(e -> controller.Shutdown());
+//        primaryStage.show();
+        FXMLLoader loader =new FXMLLoader(getClass().getResource("StartScreen.fxml"));
         Parent root = loader.load();
         primaryStage.setScene(new Scene(root));
-        Controller controller = loader.getController();
-        primaryStage.setOnHidden(e -> controller.Shutdown());
         primaryStage.show();
-
     }
 
 

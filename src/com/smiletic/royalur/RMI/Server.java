@@ -17,6 +17,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
     private Vector<ClientData> clients;
     private static  final long serialVersionUID = 1L;
+    private static int teamcount = 0;
 
     protected Server() throws RemoteException {
         super();
@@ -62,8 +63,10 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         ClientInterface client = null;
         try {
             client = (ClientInterface) Naming.lookup("rmi://" + hostName+"/"+clientServiceName);
-            clients.add(new ClientData(user,client));
+            int teamID = AssignTeam(client);
+            clients.add(new ClientData(user,client,teamID));
             client.messageFromServer("You've joined" + user.getUserName() + " welcome!", new User("SERVER", Color.RED));
+
 
         } catch (NotBoundException e) {
             e.printStackTrace();
@@ -73,4 +76,30 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public void removeClient() throws RemoteException {
+        broadcastMessage(new User("SERVER", Color.RED),"Breaking Connection");
+        clients.removeAllElements();
+        teamcount=0;
+    }
+
+    @Override
+    public void nextTurnBroadcast(int activeTeam) throws RemoteException {
+        for (ClientData c:clients){
+            c.clientInterface.nextTurnRecieve(activeTeam);
+            if(c.teamID != activeTeam){
+                c.clientInterface.blockMovement();
+                System.out.println("ACTIVE TEAM IS NOW" + c.teamID);
+            }
+        }
+    }
+
+    @Override
+    public int AssignTeam(ClientInterface c) throws RemoteException {
+        c.AssignTeam(++teamcount);
+        return teamcount;
+    }
+
+
 }

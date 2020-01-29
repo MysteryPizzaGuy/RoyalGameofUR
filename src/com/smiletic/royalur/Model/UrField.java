@@ -1,6 +1,8 @@
 package com.smiletic.royalur.Model;
 
+import com.smiletic.royalur.Controller;
 import com.smiletic.royalur.SOCKET.UrSocketClient;
+import com.smiletic.royalur.XML.Action;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -82,13 +84,17 @@ public final class UrField extends Pane implements Serializable,Component {
 
     private void SetListeners(){
     this.setOnDragDetected(event -> {
-            Dragboard db = this.startDragAndDrop(TransferMode.MOVE);
-            ClipboardContent content = new ClipboardContent();
-            content.put(UrToken.urTokenFormat,urToken);
-//            content.putImage(TokenImage.getImage());
-            db.setContent(content);
-            event.consume();
-        });
+        if (urToken!=null) {
+            if (urToken.isCurrentlyActive()) {
+                Dragboard db = this.startDragAndDrop(TransferMode.MOVE);
+                ClipboardContent content = new ClipboardContent();
+                content.put(UrToken.urTokenFormat,urToken);
+    //            content.putImage(TokenImage.getImage());
+                db.setContent(content);
+                event.consume();
+            }
+        }
+    });
         this.setOnDragOver(event -> {
             if (event.getGestureSource() != this &&
 //                    event.getDragboard().hasImage()) {
@@ -126,10 +132,17 @@ public final class UrField extends Pane implements Serializable,Component {
                         socketClient.Created(urToken.getX(),urToken.getY(),source.getX(),source.getY(),urToken.getTeam());
 
                     };
+                }else{
+                    if(event.getGestureSource() instanceof UrField){
+                        Controller.AddActionToList(urToken.getX(),urToken.getY(),source.getX(),source.getY(),urToken.getTeam(), Action.Types.MOVED);
+                    }else{
+                        Controller.AddActionToList(urToken.getX(),urToken.getY(),source.getX(),source.getY(),urToken.getTeam(), Action.Types.CREATED);
+
+                    };
                 }
                 System.out.println("X:"+urToken.getX()+"Y:"+urToken.getY());
                 TokenImage.setImage(urToken.TokenImage.getImage());
-                if(event.getGestureTarget()!=null){
+                if(event.getGestureTarget()!=null && event.getTransferMode() == TransferMode.MOVE){
                     event.setDropCompleted(true);
                 }else{
                     event.setDropCompleted(false);
@@ -139,7 +152,7 @@ public final class UrField extends Pane implements Serializable,Component {
             event.consume();
         });
         this.setOnDragDone(event -> {
-            if (this==event.getGestureSource() && !event.isDropCompleted()){
+            if (this==event.getGestureSource() && !event.isDropCompleted() && event.getTransferMode()!=null){
                 TokenImage.setImage(null);
                 urToken=null;
 

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="280.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.smiletic.royalur.MultiplayerSetup">
+    <children>
+        <Pane layoutX="369.0" layoutY="150.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <ImageView fitHeight="400.0" fitWidth="600.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@res/startscreen.jpg" />
+                    </image>
+                </ImageView>
+                <Button layoutX="14.0" layoutY="221.0" mnemonicParsing="false" onAction="#HandleButtonBack" prefHeight="45.0" prefWidth="110.0" text="Back" />
+            <Button layoutX="476.0" layoutY="221.0" mnemonicParsing="false" onAction="#HandleButtonPlay" prefHeight="45.0" prefWidth="110.0" text="Play" />
+            <TextField fx:id="tfIPAdress" layoutX="211.0" layoutY="63.0" prefWidth="178.0" promptText="Enter The IP Adress" />
+            <Button layoutX="245.0" layoutY="221.0" mnemonicParsing="false" onAction="#HandleButtonLocalHost" prefHeight="45.0" prefWidth="110.0" text="LocalHost" />
+            <TextField fx:id="tfUserName" layoutX="14.0" layoutY="104.0" prefWidth="178.0" promptText="Enter User Name" text="DefaultPlayerName" />
+            <ColorPicker fx:id="cpUserColor" layoutX="41.0" layoutY="140.0" promptText="Enter User Color" />
+            </children></Pane>
+    </children>
+</AnchorPane>

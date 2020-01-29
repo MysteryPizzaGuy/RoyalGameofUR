@@ -23,7 +23,7 @@
     <children>
         <Pane prefHeight="632.0" prefWidth="374.0" style="-fx-background-color: cornflowerblue; -fx-border-color: darkorange; -fx-border-width: 10;" GridPane.rowSpan="2147483647">
             <children>
-                <GridPane fx:id="gameGrid" hgap="5.0" layoutX="52.0" layoutY="16.0" vgap="5.0">
+                <GridPane fx:id="gameGrid" hgap="5.0" layoutX="52.0" layoutY="14.0" vgap="5.0">
 
                     <columnConstraints>
                         <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="50.0" prefWidth="50.0" />
@@ -69,8 +69,9 @@
                             </font>
                         </Label>
                   <Button fx:id="btnSave" mnemonicParsing="false" onAction="#HandlebtnSaveAction" text="SAVE" GridPane.columnIndex="2" />
-                  <Button fx:id="btnGenerateDoc" mnemonicParsing="false" onAction="#HandlebtnHenerateDocAction" text="DOC" GridPane.columnIndex="3" />
-                  <Button fx:id="btnConnectToChat" mnemonicParsing="false" onAction="#HandleBtnConnectToServer" text="CONNECT" GridPane.columnIndex="1" />
+                  <Button mnemonicParsing="false" onAction="#HandlebtnNextTurn" text="NEXT TURN" GridPane.columnIndex="1" />
+                  <Button mnemonicParsing="false" onAction="#HandlebtnGenerateXMLReplay" text="XML" GridPane.columnIndex="3" />
+                  <Button mnemonicParsing="false" onAction="#HandlebtnReplay" text="ReplayLast" GridPane.rowIndex="2" />
                     </children>
                 </GridPane>
             </children>

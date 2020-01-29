@@ -19,6 +19,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     private static final String hostName = "localhost";
     private static final String serviceName = "ChatRMI";
     private String clientServiceName;
+    private static int MPTeamID;
 
     public Client(User user, Controller ctrl) throws RemoteException {
         super();
@@ -57,6 +58,32 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
         server.registerClient(user,clientServiceName,hostName);
 
 
+    }
+
+    @Override
+    public void unregisterFromServer() throws RemoteException {
+            server.removeClient();
+    }
+
+    @Override
+    public void nextTurnRecieve(int activeTeam) throws RemoteException {
+        Platform.runLater(()-> {
+            try {
+                ctrl.MakeTeamActive(activeTeam);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    @Override
+    public void blockMovement() throws RemoteException {
+        Platform.runLater(()->ctrl.BlockAllMovement());
+    }
+
+    @Override
+    public void AssignTeam(int teamint) throws RemoteException {
+        MPTeamID = teamint;
     }
 
 
